@@ -22,6 +22,8 @@
 		8B72B183FD0745D3B26DB7FF /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CB13FBD28BB0442FA5159ECD /* Info.plist */; };
 		2A58D354FB814F5896856574 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DD79C706049A41D69909C9DE /* Info.plist */; };
 		BF85146ED4074989B888E8A1 /* MarkdownViewerQLExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = D9439481DA264FD09494F831 /* MarkdownViewerQLExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		F100000000000001AAAABBBB /* marked.min.js in Resources */ = {isa = PBXBuildFile; fileRef = 944154650B6C447F85D1ADE1 /* marked.min.js */; };
+		F100000000000002AAAABBBB /* highlight.min.js in Resources */ = {isa = PBXBuildFile; fileRef = 0F4D5C37B52C43FF9D46A1F9 /* highlight.min.js */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -230,6 +232,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F100000000000001AAAABBBB /* marked.min.js in Resources */,
+				F100000000000002AAAABBBB /* highlight.min.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
