@@ -1,32 +1,42 @@
 import SwiftUI
 import WebKit
+import UniformTypeIdentifiers
 
 struct ContentView: View {
     var vm: MarkdownViewModel
-    @State private var webView = WKWebView()
+    @State private var isDragTargeted = false
 
     var body: some View {
         VStack(spacing: 0) {
             toolbar
             Divider()
-            if vm.markdownContent.isEmpty && vm.fileURL == nil {
-                emptyState
-            } else if let error = vm.errorMessage {
-                errorView(error)
-            } else {
-                MarkdownWebView(
-                    webView: webView,
-                    html: MarkdownRenderer.shared.render(vm.markdownContent)
-                )
+            ZStack {
+                if vm.markdownContent.isEmpty && vm.fileURL == nil {
+                    emptyState
+                } else if let error = vm.errorMessage {
+                    errorView(error)
+                } else {
+                    MarkdownWebView(markdown: vm.markdownContent)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                if isDragTargeted {
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.accentColor, lineWidth: 3)
+                        .background(Color.accentColor.opacity(0.08))
+                        .padding(4)
+                        .allowsHitTesting(false)
+                }
             }
         }
         .frame(minWidth: 600, minHeight: 400)
         .onAppear(perform: setupKeyboardHandling)
-        .onChange(of: vm.markdownContent) { _, _ in
-            webView.loadHTMLString(
-                MarkdownRenderer.shared.render(vm.markdownContent),
-                baseURL: vm.fileURL?.deletingLastPathComponent()
-            )
+        .onDrop(of: [.fileURL], isTargeted: $isDragTargeted) { providers in
+            guard let provider = providers.first else { return false }
+            _ = provider.loadObject(ofClass: URL.self) { url, _ in
+                guard let url, url.pathExtension.lowercased() == "md" else { return }
+                DispatchQueue.main.async { vm.loadFile(url) }
+            }
+            return true
         }
     }
 
@@ -103,17 +113,22 @@ struct ContentView: View {
     }
 }
 
-// NSViewRepresentable wrapper for WKWebView
 struct MarkdownWebView: NSViewRepresentable {
-    let webView: WKWebView
-    let html: String
+    let markdown: String
+
+    class Coordinator: NSObject {
+        var loadedMarkdown: String = ""
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
 
     func makeNSView(context: Context) -> WKWebView {
-        webView.setValue(false, forKey: "drawsBackground") // Transparent bg
-        return webView
+        WKWebView(frame: .zero)
     }
 
     func updateNSView(_ nsView: WKWebView, context: Context) {
-        // Reload only handled via .onChange in ContentView
+        guard markdown != context.coordinator.loadedMarkdown else { return }
+        context.coordinator.loadedMarkdown = markdown
+        nsView.loadHTMLString(MarkdownRenderer.shared.render(markdown), baseURL: Bundle.main.resourceURL)
     }
 }

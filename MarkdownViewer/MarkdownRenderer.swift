@@ -4,11 +4,20 @@ final class MarkdownRenderer {
     static let shared = MarkdownRenderer()
     private init() {}
 
+    // Bundle whose Resources contain marked.min.js and highlight.min.js.
+    // In the main app, Bundle.main is the app bundle.
+    // In the QL extension, Bundle.main is the extension bundle.
+    // Both contain the JS files in their own Resources build phase.
+    var resourceBundle: Bundle { Bundle.main }
+
+    // Base URL for WKWebView so <script src="..."> resolves from the right bundle.
+    var resourceURL: URL? { resourceBundle.resourceURL }
+
     // marked.js content loaded from bundle (one-time)
     private lazy var markedJS: String = {
         guard let url = Bundle.main.url(forResource: "marked.min", withExtension: "js"),
               let content = try? String(contentsOf: url, encoding: .utf8) else {
-            return "// marked.js not found"
+            return "console.error('marked.js not found in bundle');"
         }
         return content
     }()
@@ -17,17 +26,31 @@ final class MarkdownRenderer {
     private lazy var highlightJS: String = {
         guard let url = Bundle.main.url(forResource: "highlight.min", withExtension: "js"),
               let content = try? String(contentsOf: url, encoding: .utf8) else {
-            return "// highlight.js not found"
+            return "console.error('highlight.js not found in bundle');"
         }
         return content
     }()
 
+    // CSS-only page shell — JS injected via WKUserScript, content via evaluateJavaScript
+    var pageHTML: String {
+        """
+        <!DOCTYPE html><html><head>
+        <meta charset="utf-8">
+        <style>\(css)</style>
+        </head><body><div id="content"></div></body></html>
+        """
+    }
+
+    // Render script called via evaluateJavaScript after WKUserScript injects the libs
+    func renderJS(_ markdown: String) -> String {
+        let escaped = markdown
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "`", with: "\\`")
+            .replacingOccurrences(of: "${", with: "\\${")
+        return renderScript(escaped)
+    }
+
     func render(_ markdown: String) -> String {
-        // Escape backticks and template literal chars in markdown
-        // to safely embed in JS template literal
-        // Only escape characters that break JS template literal syntax.
-        // DO NOT escape bare $ — that would corrupt markdown prose like "$100".
-        // Only ${ starts a template expression and must be escaped.
         let escaped = markdown
             .replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "`", with: "\\`")

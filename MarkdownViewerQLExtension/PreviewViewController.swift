@@ -7,14 +7,11 @@ class PreviewViewController: NSViewController, QLPreviewingController {
     private var currentFileURL: URL?
 
     override func loadView() {
-        // WKWebView setup with message handler for clipboard fallback
         let config = WKWebViewConfiguration()
         let contentController = WKUserContentController()
         contentController.add(self, name: "clipboard")
         config.userContentController = contentController
-
         webView = WKWebView(frame: .zero, configuration: config)
-        webView.setValue(false, forKey: "drawsBackground")
         view = webView
     }
 
@@ -24,8 +21,7 @@ class PreviewViewController: NSViewController, QLPreviewingController {
             handler(PreviewError.cannotReadFile)
             return
         }
-        let html = MarkdownRenderer.shared.render(markdown)
-        webView.loadHTMLString(html, baseURL: nil)
+        webView.loadHTMLString(MarkdownRenderer.shared.render(markdown), baseURL: Bundle.main.resourceURL)
         addOpenInEditorButton()
         handler(nil)
     }

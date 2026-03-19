@@ -9,6 +9,16 @@ struct MarkdownViewerApp: App {
         WindowGroup {
             ContentView(vm: vm)
                 .background(WindowAccessor())
+                .onAppear {
+                    // Support: MarkdownViewer /path/to/file.md
+                    if CommandLine.arguments.count > 1 {
+                        let path = CommandLine.arguments[1]
+                        let url = URL(fileURLWithPath: path)
+                        if url.pathExtension.lowercased() == "md" {
+                            vm.loadFile(url)
+                        }
+                    }
+                }
                 .onOpenURL { url in
                     handleURL(url)
                 }
