@@ -78,11 +78,14 @@ check "AC7: Theme.swift in source repo (Catppuccin colors)" \
 MAIN_BIN="$APP/Contents/MacOS/MarkdownViewer"
 EXT_BIN="$APP/Contents/PlugIns/MarkdownViewerQLExtension.appex/Contents/MacOS/MarkdownViewerQLExtension"
 
-check "FUNCTIONAL: URL scheme bridge in QL extension binary" bash -c \
-    "strings '$EXT_BIN' 2>/dev/null | grep -q 'markdownviewer://open'"
+check "FUNCTIONAL: URL scheme registered in main Info.plist" bash -c \
+    "plutil -p '$APP/Contents/Info.plist' 2>/dev/null | grep -q 'markdownviewer'"
 
-check "FUNCTIONAL: clipboard message handler linked in QL extension binary" bash -c \
-    "strings '$EXT_BIN' 2>/dev/null | grep -q 'clipboard'"
+check "FUNCTIONAL: clipboard message handler in main binary" bash -c \
+    "strings '$MAIN_BIN' 2>/dev/null | grep -q 'clipboard'"
+
+check "FUNCTIONAL: QL extension uses JavaScriptCore (in-process markdown rendering)" bash -c \
+    "strings '$EXT_BIN' 2>/dev/null | grep -q 'JSContext'"
 
 check "FUNCTIONAL: LSSetDefaultRoleHandlerForContentType imported in main binary" bash -c \
     "nm -u '$MAIN_BIN' 2>/dev/null | grep -q '_LSSetDefaultRoleHandlerForContentType'"
