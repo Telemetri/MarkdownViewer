@@ -47,6 +47,12 @@ check "AC3: CFBundleURLTypes declares markdownviewer:// scheme" bash -c \
 check "AC4: marked.min.js bundled in app resources" \
     test -f "$APP/Contents/Resources/marked.min.js"
 
+check "AC4: marked.min.js in QL extension bundle" \
+    test -f "$APP/Contents/PlugIns/MarkdownViewerQLExtension.appex/Contents/Resources/marked.min.js"
+
+check "AC4: highlight.min.js in QL extension bundle" \
+    test -f "$APP/Contents/PlugIns/MarkdownViewerQLExtension.appex/Contents/Resources/highlight.min.js"
+
 check "AC4: marked.min.js is non-empty (>10KB)" bash -c \
     "[ \$(wc -c < '$APP/Contents/Resources/marked.min.js') -gt 10000 ]"
 
